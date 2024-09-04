@@ -9,7 +9,7 @@ export default function App() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
+      const response = await fetch('http://192.168.2.183:4000/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -24,22 +24,34 @@ export default function App() {
 
   const handleRegister = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/register', {
+      const response = await fetch('http://192.168.2.183:4000/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
+      
+      
+      if (!response.ok) {
+        const message = `An error has occurred: ${response.status}`;
+        Alert.alert('Error', message);
+        return;
+      }
+  
       const data = await response.json();
+      
+      
       if (data.success) Alert.alert('Registration Success');
       else Alert.alert('Registration Failed', data.message);
     } catch (error) {
+      console.log("Error:", error);
       Alert.alert('Error', 'Something went wrong!');
     }
   };
+  
 
   const handleForgetPassword = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/forget-password', {
+      const response = await fetch('http://192.168.2.183:4000/users/forget-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
