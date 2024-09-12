@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, FlatList, Image, Button, Alert, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, FlatList, Image, Button, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen({ route, navigation }) {
   const { userData } = route.params;
@@ -12,7 +11,7 @@ export default function HomeScreen({ route, navigation }) {
   const [userDetails, setUserDetails] = useState({
     email: userData.email,
     contact: userData.contact,
-    address: userData.address,
+    address: userData.address
   });
   const [userId, setUserId] = useState(null);
 
@@ -31,41 +30,19 @@ export default function HomeScreen({ route, navigation }) {
     getUserId();
 
     fetch('http://192.168.2.183:4000/products/listallproduct')
-      .then((response) => response.json())
-      .then((responseJson) => {
+      .then(response => response.json())
+      .then(responseJson => {
         if (responseJson.success) {
           setProducts(responseJson.data);
           setFilteredProducts(responseJson.data);
         }
       })
-      .catch((error) => console.error('Lỗi khi lấy sản phẩm:', error));
+      .catch(error => console.error('Lỗi khi lấy sản phẩm:', error));
   }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      const fetchUserData = async () => {
-        try {
-          const storedUserData = await AsyncStorage.getItem('userData');
-          if (storedUserData) {
-            const parsedUserData = JSON.parse(storedUserData);
-            setUserDetails({
-              email: parsedUserData.email,
-              contact: parsedUserData.contact,
-              address: parsedUserData.address,
-            });
-          }
-        } catch (error) {
-          console.error('Lỗi khi lấy thông tin người dùng từ AsyncStorage:', error);
-        }
-      };
-
-      fetchUserData();
-    }, [])
-  );
 
   const handleSearch = (text) => {
     setSearchText(text);
-    const filtered = products.filter((product) =>
+    const filtered = products.filter(product =>
       product.nameproduct.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredProducts(filtered);
@@ -90,18 +67,17 @@ export default function HomeScreen({ route, navigation }) {
         Alert.alert('Lỗi', 'Không tìm thấy dữ liệu người dùng.');
         return;
       }
-
+  
       const storedUserData = JSON.parse(userDataString);
       const userId = storedUserData._id;
-
+  
       if (!userId) {
         Alert.alert('Lỗi', 'Không tìm thấy ID người dùng.');
         return;
       }
-
+  
       const updatedUserDetails = { ...userDetails, _id: userId };
-
-      console.log('Sending updated user details:', updatedUserDetails);
+  
       const response = await fetch('http://192.168.2.183:4000/users/update-info', {
         method: 'POST',
         headers: {
@@ -109,15 +85,13 @@ export default function HomeScreen({ route, navigation }) {
         },
         body: JSON.stringify(updatedUserDetails),
       });
-
+  
       const result = await response.json();
-      console.log('API response:', result);
-
+  
       if (result.success) {
         await AsyncStorage.setItem('userData', JSON.stringify(updatedUserDetails));
         Alert.alert('Cập nhật thành công', 'Thông tin người dùng đã được cập nhật.');
         setIsEditingUser(false);
-        navigation.navigate('Home', { userData: updatedUserDetails }); // Cập nhật userData trong navigation
       } else {
         Alert.alert('Lỗi', result.message || 'Cập nhật thất bại.');
       }
@@ -162,9 +136,9 @@ export default function HomeScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Thông Tin Người Dùng</Text>
-      <Text>Email: {userDetails.email}</Text>
-      <Text>Liên hệ: {userDetails.contact}</Text>
-      <Text>Địa chỉ: {userDetails.address}</Text>
+      <Text>Email: {userData.email}</Text>
+      <Text>Liên hệ: {userData.contact}</Text>
+      <Text>Địa chỉ: {userData.address}</Text>
 
       <Button title="Chi tiết người dùng" onPress={() => setIsEditingUser(true)} />
 
@@ -179,13 +153,16 @@ export default function HomeScreen({ route, navigation }) {
         data={filteredProducts}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.productContainer}>
+          <TouchableOpacity
+            style={styles.productContainer}
+            onPress={() => navigation.navigate('ProductDetail', { product: item })}
+          >
             <Image source={{ uri: item.imgs }} style={styles.productImage} />
             <View style={styles.productDetails}>
               <Text style={styles.productName}>{item.nameproduct}</Text>
               <Text style={styles.productPrice}>{item.price} VND</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
 

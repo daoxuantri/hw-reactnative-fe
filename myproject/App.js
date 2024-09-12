@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import ProductDetailScreen from './screens/ProductDetailScreen';
-import LoginScreen from './screens/LoginScreen'; // Nếu bạn có màn hình login
+import LoginScreen from './screens/LoginScreen';
 
 const Stack = createStackNavigator();
 
