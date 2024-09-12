@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function UserScreen({ route }) {
-  const { userData } = route.params; // Get user data from route parameters
+  const { userData } = route.params;
 
   return (
     <View style={styles.container}>

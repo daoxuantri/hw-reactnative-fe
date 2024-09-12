@@ -11,7 +11,7 @@ export default function RegisterScreen({ navigation }) {
 
   const handleSendOtp = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:4000/users/email_verification/${email}`, {
+      const response = await fetch(`http://192.168.2.183:4000/users/email_verification/${email}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -46,7 +46,7 @@ export default function RegisterScreen({ navigation }) {
       const data = await response.json();
       if (data.success) {
         Alert.alert('Registration Success', 'Your account has been created.');
-        navigation.navigate('Login'); // Go back to login screen after registration
+        navigation.navigate('Login');
       } else {
         Alert.alert('Registration Failed', data.message);
       }

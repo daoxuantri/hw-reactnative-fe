@@ -1,9 +1,28 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUserLoggedIn = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          navigation.navigate('Home', { userData: JSON.parse(userData) });
+        }
+      } catch (error) {
+        console.log('Error retrieving user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUserLoggedIn();
+  }, []);
 
   const handleLogin = async () => {
     try {
@@ -15,8 +34,10 @@ export default function LoginScreen({ navigation }) {
 
       const data = await response.json();
       if (data.success) {
-        // Navigate to HomeScreen with user data
+        await AsyncStorage.setItem('userData', JSON.stringify(data.data));
+        console.log(data.data);
         navigation.navigate('Home', { userData: data.data });
+        
       } else {
         Alert.alert('Login Failed', data.message);
       }
@@ -25,6 +46,14 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Error', 'Something went wrong while logging in!');
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
