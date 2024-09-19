@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,16 +32,20 @@ export default function LoginScreen({ navigation }) {
       });
 
       const data = await response.json();
+
       if (data.success) {
-        await AsyncStorage.setItem('userData', JSON.stringify(data.data));
-        console.log(data.data);
-        navigation.navigate('Home', { userData: data.data });
-        
+        const userData = data.data;
+
+        // Lưu thông tin người dùng và token vào AsyncStorage
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+        await AsyncStorage.setItem('token', userData.access_token); // Lưu token riêng biệt
+
+        navigation.navigate('Home', { userData });
       } else {
         Alert.alert('Login Failed', data.message);
       }
     } catch (error) {
-      console.log("Error:", error);
+      console.log('Error:', error);
       Alert.alert('Error', 'Something went wrong while logging in!');
     }
   };
@@ -79,7 +82,6 @@ export default function LoginScreen({ navigation }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
