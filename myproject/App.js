@@ -7,12 +7,13 @@ import UserScreen from './screens/UserScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProductDetailScreen from './screens/ProductDetailScreen';
+import TopSellingProductsScreen from './screens/TopSellingProductsScreen';
 import { Ionicons } from '@expo/vector-icons'; // Hoặc bất kỳ icon nào bạn thích
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Tạo một Tab Navigator cho Home và Profile
+// Tạo một Tab Navigator cho Home, Profile và Top Selling
 function HomeTabs() {
   return (
     <Tab.Navigator
@@ -24,6 +25,8 @@ function HomeTabs() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'ProfileTab') {
             iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'TopSellingTab') {
+            iconName = focused ? 'star' : 'star-outline'; // Bạn có thể chọn icon khác nếu muốn
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -33,6 +36,7 @@ function HomeTabs() {
     >
       <Tab.Screen name="HomeTab" component={HomeScreen} />
       <Tab.Screen name="ProfileTab" component={UserScreen} />
+      <Tab.Screen name="TopSellingTab" component={TopSellingProductsScreen} />
     </Tab.Navigator>
   );
 }

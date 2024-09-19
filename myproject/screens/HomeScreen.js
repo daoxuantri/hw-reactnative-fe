@@ -7,6 +7,9 @@ export default function HomeScreen({ navigation, route }) {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [userData, setUserData] = useState(null);
 
   // Lấy userData từ route.params nếu có, hoặc từ AsyncStorage
@@ -34,24 +37,27 @@ export default function HomeScreen({ navigation, route }) {
   }, [route.params]);
 
   // Fetch danh sách sản phẩm từ API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('http://192.168.2.183:4000/products/listallproduct');
-        const responseJson = await response.json();
-        if (responseJson.success) {
-          setProducts(responseJson.data);
-          setFilteredProducts(responseJson.data);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
+  const fetchProducts = async (pageNumber) => {
+    setLoadingMore(true);
+    try {
+      const response = await fetch(`http://192.168.2.183:4000/products/listallproduct?page=${pageNumber}`);
+      const responseJson = await response.json();
+      if (responseJson.success) {
+        setProducts(prevProducts => [...prevProducts, ...responseJson.data]);
+        setFilteredProducts(prevProducts => [...prevProducts, ...responseJson.data]);
+        setHasMore(responseJson.data.length > 0); // Nếu không còn sản phẩm, setHasMore = false
       }
-    };
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
-    fetchProducts();
-  }, []);
+  useEffect(() => {
+    fetchProducts(page);
+  }, [page]);
 
   // Xử lý tìm kiếm
   const handleSearch = (text) => {
@@ -62,7 +68,14 @@ export default function HomeScreen({ navigation, route }) {
     setFilteredProducts(filtered);
   };
 
-  if (loading) {
+  // Xử lý khi cuộn gần đến cuối danh sách
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      setPage(prevPage => prevPage + 1);
+    }
+  };
+
+  if (loading && page === 1) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -89,7 +102,7 @@ export default function HomeScreen({ navigation, route }) {
       />
       <FlatList
         data={filteredProducts}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => `${item._id}_${item.nameproduct}`}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.productContainer}
@@ -102,6 +115,9 @@ export default function HomeScreen({ navigation, route }) {
             </View>
           </TouchableOpacity>
         )}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={loadingMore ? <ActivityIndicator size="large" color="#0000ff" /> : null}
       />
     </View>
   );
