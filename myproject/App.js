@@ -8,12 +8,12 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProductDetailScreen from './screens/ProductDetailScreen';
 import TopSellingProductsScreen from './screens/TopSellingProductsScreen';
-import { Ionicons } from '@expo/vector-icons'; // Hoặc bất kỳ icon nào bạn thích
+import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Tạo một Tab Navigator cho Home, Profile và Top Selling
+// Tạo Tab Navigator cho Home, Profile và Top Selling
 function HomeTabs() {
   return (
     <Tab.Navigator
@@ -26,7 +26,7 @@ function HomeTabs() {
           } else if (route.name === 'ProfileTab') {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'TopSellingTab') {
-            iconName = focused ? 'star' : 'star-outline'; // Bạn có thể chọn icon khác nếu muốn
+            iconName = focused ? 'star' : 'star-outline';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -34,7 +34,11 @@ function HomeTabs() {
         tabBarInactiveTintColor: 'gray',
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeScreen} />
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeScreen}
+        options={{ headerTitle: 'Home' }} // Không sử dụng Stack cho Home
+      />
       <Tab.Screen name="ProfileTab" component={UserScreen} />
       <Tab.Screen name="TopSellingTab" component={TopSellingProductsScreen} />
     </Tab.Navigator>
@@ -46,9 +50,13 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Home" component={HomeTabs} />
-        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen
+          name="HomeTabs" // Đảm bảo bạn điều hướng đến 'HomeTabs' thay vì 'Home'
+          component={HomeTabs}
+          options={{ headerShown: false }} // Không hiển thị header cho HomeTabs
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

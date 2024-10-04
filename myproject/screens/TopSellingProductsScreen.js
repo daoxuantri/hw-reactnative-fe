@@ -31,8 +31,8 @@ export default function TopSellingProductsScreen() {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.productContainer}>
-            <Image source={{ uri: item.imgs }} style={styles.productImage} />
-            <Text style={styles.productName}>{item.nameproduct}</Text>
+            <Image source={{ uri: item.images }} style={styles.productImage} />
+            <Text style={styles.productName}>{item.name}</Text>
             <Text style={styles.productPrice}>${item.price}</Text>
           </View>
         )}

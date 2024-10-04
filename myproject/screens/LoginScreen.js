@@ -11,7 +11,7 @@ export default function LoginScreen({ navigation }) {
       try {
         const userData = await AsyncStorage.getItem('userData');
         if (userData) {
-          navigation.navigate('Home', { userData: JSON.parse(userData) });
+          navigation.navigate('HomeTabs', { userData: JSON.parse(userData) });
         }
       } catch (error) {
         console.log('Error retrieving user data:', error);
@@ -40,7 +40,8 @@ export default function LoginScreen({ navigation }) {
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
         await AsyncStorage.setItem('token', userData.access_token); // Lưu token riêng biệt
 
-        navigation.navigate('Home', { userData });
+        navigation.navigate('HomeTabs', { userData });
+
       } else {
         Alert.alert('Login Failed', data.message);
       }

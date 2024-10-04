@@ -6,8 +6,8 @@ export default function ProductDetailScreen({ route }) {
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: product.imgs }} style={styles.productImage} />
-      <Text style={styles.productName}>{product.nameproduct}</Text>
+      <Image source={{ uri: product.images }} style={styles.productImage} />
+      <Text style={styles.productName}>{product.name}</Text>
       <Text style={styles.productPrice}>{product.price} VND</Text>
       <Text style={styles.productDescription}>{product.description}</Text>
     </View>

@@ -8,8 +8,30 @@ export default function RegisterScreen({ navigation }) {
   const [address, setAddress] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [contactError, setContactError] = useState('');
+
+  const validateEmail = (email) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    return regex.test(email);
+  };
+
+  const validateContact = (contact) => {
+    const regex = /^[0-9]+$/;
+    return regex.test(contact);
+  };
 
   const handleSendOtp = async () => {
+    if (!validateEmail(email)) {
+      setEmailError('Email phải có đuôi là @gmail.com');
+      return;
+    }
+
+    if (!validateContact(contact)) {
+      setContactError('Số điện thoại phải là số');
+      return;
+    }
+
     try {
       const response = await fetch(`http://192.168.2.183:4000/users/email_verification/${email}`, {
         method: 'POST',
@@ -31,6 +53,16 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const handleRegister = async () => {
+    if (!validateEmail(email)) {
+      setEmailError('Email phải có đuôi là @gmail.com');
+      return;
+    }
+
+    if (!validateContact(contact)) {
+      setContactError('Số điện thoại phải là số');
+      return;
+    }
+
     if (!isOtpSent) {
       Alert.alert('Error', 'Please send OTP first.');
       return;
@@ -59,11 +91,19 @@ export default function RegisterScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Register</Text>
+      <Text style={{ color: 'red' }}>{emailError}</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          if (!validateEmail(text)) {
+            setEmailError('Email phải có đuôi là @gmail.com');
+          } else {
+            setEmailError('');
+          }
+        }}
         keyboardType="email-address"
       />
       <TextInput
@@ -73,11 +113,19 @@ export default function RegisterScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
+      <Text style={{ color: 'red' }}>{contactError}</Text>
       <TextInput
         style={styles.input}
         placeholder="Contact"
         value={contact}
-        onChangeText={setContact}
+        onChangeText={(text) => {
+          setContact(text);
+          if (!validateContact(text)) {
+            setContactError('Số điện thoại phải là số');
+          } else {
+            setContactError('');
+          }
+        }}
       />
       <TextInput
         style={styles.input}
