@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, Alert } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
+
 export default function CartScreen() {
   const [cartData, setCartData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,51 +45,13 @@ export default function CartScreen() {
       setLoading(false);
     }
   };
-  
-  const increaseQuantity = async (productId) => {  // Thêm async
-    try {
-      console.log('Increasing quantity for product ID:', productId); 
-      const storedUserData = await AsyncStorage.getItem('userData');
-      const userData = JSON.parse(storedUserData);
-      const userId = userData.id;
-  
-      const response = await fetch('http://192.168.2.183:4000/carts/addproduct', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user: userId,
-          _id: productId,
-          quantity: 1,  // Tăng số lượng sản phẩm
-        }),
-      });
-  
-      const responseJson = await response.json();
-      if (responseJson.success) {
-        fetchCartData();  // Lấy lại dữ liệu giỏ hàng sau khi tăng số lượng
-        Toast.show({
-          type: 'success',
-          text1: 'Tăng số lượng sản phẩm thành công!',
-          position: 'bottom',
-          visibilityTime: 2000,
-        });
-      } else {
-        console.log('Lỗi khi tăng số lượng sản phẩm: ', responseJson.message);
-      }
-    } catch (error) {
-      console.error('Error increasing product quantity:', error);
-    }
-  };
-  
 
-  const decreaseQuantity = async (productId) => {  // Thêm async
+  const updateQuantity = async (productId, quantityChange) => {
     try {
-      console.log('Increasing quantity for product ID:', productId); 
       const storedUserData = await AsyncStorage.getItem('userData');
       const userData = JSON.parse(storedUserData);
       const userId = userData.id;
-  
+
       const response = await fetch('http://192.168.2.183:4000/carts/addproduct', {
         method: 'POST',
         headers: {
@@ -97,35 +60,38 @@ export default function CartScreen() {
         body: JSON.stringify({
           user: userId,
           _id: productId,
-          quantity: -1,  // Giảm số lượng sản phẩm
+          quantity: quantityChange,
         }),
       });
-  
+
       const responseJson = await response.json();
       if (responseJson.success) {
-        fetchCartData();  // Lấy lại dữ liệu giỏ hàng sau khi giảm số lượng
-        Toast.show({
-          type: 'success',
-          text1: 'Giảm số lượng sản phẩm thành công!',
-          position: 'bottom',
-          visibilityTime: 2000,
-        });
+        setCartData((prevCartData) => {
+          const updatedItems = prevCartData.productItem.map((item) => {
+            if (item.id === productId) {
+              return { ...item, quantity: item.quantity + quantityChange };
+            }
+            return item;
+          });
+          // Tính toán lại tổng giá trị
+        const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+        return { ...prevCartData, productItem: updatedItems, total: newTotal };
+        }); 
       } else {
-        console.log('Lỗi khi giảm số lượng sản phẩm: ', responseJson.message);
+        console.log('Lỗi khi thay đổi số lượng sản phẩm: ', responseJson.message);
       }
     } catch (error) {
-      console.error('Error decreasing product quantity:', error);
+      console.error('Error updating product quantity:', error);
     }
   };
 
   const removeProductFromCart = async (productId) => {
     try {
-      // Lấy userId từ AsyncStorage
-      console.log('Product ID:', productId);
       const storedUserData = await AsyncStorage.getItem('userData');
       const userData = JSON.parse(storedUserData);
       const userId = userData.id; 
-  
+
       const response = await fetch('http://192.168.2.183:4000/carts/removeproduct', {
         method: 'POST',
         headers: {
@@ -136,10 +102,13 @@ export default function CartScreen() {
           _id: productId, 
         }),
       });
-  
+
       const responseJson = await response.json();
       if (responseJson.success) {
-        fetchCartData();
+        setCartData((prevCartData) => {
+          const updatedItems = prevCartData.productItem.filter((item) => item.id !== productId);
+          return { ...prevCartData, productItem: updatedItems };
+        });
         Toast.show({
           type: 'success', 
           text1: responseJson.message, 
@@ -153,7 +122,6 @@ export default function CartScreen() {
       console.error('Error removing product:', error);
     }
   };
-  
 
   const confirmDelete = (productId) => {
     Alert.alert(
@@ -161,7 +129,7 @@ export default function CartScreen() {
       'Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?',
       [
         { text: 'Hủy', style: 'cancel' },
-        { text: 'Xóa', onPress: () => removeProductFromCart(productId)  }
+        { text: 'Xóa', onPress: () => removeProductFromCart(productId) }
       ],
       { cancelable: true }
     );
@@ -191,7 +159,7 @@ export default function CartScreen() {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onLongPress={() => confirmDelete(item.id)} // Bắt sự kiện nhấn giữ
+            onLongPress={() => confirmDelete(item._id)}
             style={styles.productContainer}
           >
             <Image source={{ uri: item.images }} style={styles.productImage} />
@@ -200,11 +168,11 @@ export default function CartScreen() {
               <Text style={styles.productPrice}>{item.price} VND</Text>
             </View>
             <View style={styles.quantityContainer}>
-              <TouchableOpacity onPress={() => decreaseQuantity(item.id)} style={styles.quantityButton}>
+              <TouchableOpacity onPress={() => updateQuantity(item.id, -1)} style={styles.quantityButton}>
                 <Text style={styles.quantityButtonText}>-</Text>
               </TouchableOpacity>
               <Text style={styles.productQuantity}>{item.quantity}</Text>
-              <TouchableOpacity onPress={() => increaseQuantity(item.id)} style={styles.quantityButton}>
+              <TouchableOpacity onPress={() => updateQuantity(item.id, 1)} style={styles.quantityButton}>
                 <Text style={styles.quantityButtonText}>+</Text>
               </TouchableOpacity>
             </View>
