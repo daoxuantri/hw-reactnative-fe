@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 export default function HomeScreen({ navigation, route }) {
   const [products, setProducts] = useState([]);
@@ -19,7 +20,7 @@ export default function HomeScreen({ navigation, route }) {
           setUserData(dataFromRoute);
         } else {
           const storedUserData = await AsyncStorage.getItem('userData');
-          // console.log('storedUserData:', storedUserData); 
+          console.log('storedUserData:', storedUserData); 
           if (storedUserData) {
             setUserData(JSON.parse(storedUserData));
           } else {
@@ -62,17 +63,16 @@ export default function HomeScreen({ navigation, route }) {
       const responseJson = await response.json();
       if (responseJson.success) {
         setTopSellingProducts(responseJson.data);
-        // console.log('Top Selling Products:', responseJson.data); // Kiểm tra dữ liệu trả về từ API
       } else {
-        console.log('API returned an error:', responseJson);  // Kiểm tra lỗi từ API
+        console.log('API returned an error:', responseJson); 
       }
     } catch (error) {
-      console.error('Error fetching top selling products:', error);  // In lỗi nếu có
+      console.error('Error fetching top selling products:', error); 
     }
   };
 
   useEffect(() => {
-    fetchProducts();  // Gọi một lần khi component mount
+    fetchProducts();  
   }, []);
 
   // Xử lý tìm kiếm
@@ -83,6 +83,44 @@ export default function HomeScreen({ navigation, route }) {
     );
     setFilteredProducts(filtered);
   };
+
+  const handleAddToCart = async (product) => {
+    try {
+      const storedUserData = await AsyncStorage.getItem('userData');
+      const userData = JSON.parse(storedUserData);
+      const userId = userData.id;
+      const response = await fetch('http://192.168.2.183:4000/carts/addproduct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user: userId,
+          _id: product._id,
+          quantity: 1,
+        }),
+      });
+      const responseJson = await response.json();
+      if (responseJson.success) {
+        Toast.show({
+          type: 'success', 
+          text1: responseJson.message, 
+          position: 'bottom',  
+          visibilityTime: 2000, 
+        });
+      } else {
+        Toast.show({
+          type: 'success', 
+          text1: responseJson.message, 
+          position: 'bottom',  
+          visibilityTime: 2000, 
+        });
+      }
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -122,7 +160,7 @@ export default function HomeScreen({ navigation, route }) {
               <Image source={{ uri: item.images }} style={styles.topSellingProductImage} />
               <View style={styles.topSellingProductDetails}>
                 <Text style={styles.topSellingProductName}>{item.name}</Text>
-                <Text style={styles.topSellingProductPrice}>{item.price}</Text>
+                <Text style={styles.topSellingProductPrice}>{item.price} VND</Text>
                 </View>
             </TouchableOpacity>
           )}
@@ -131,25 +169,29 @@ export default function HomeScreen({ navigation, route }) {
         />
       </View>
       <FlatList
-        data={filteredProducts}
-        keyExtractor={(item) => `${item._id}_${item.name}`}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.productContainer}
-            onPress={() => navigation.navigate('ProductDetail', { product: item })}
-          >
-            <Image source={{ uri: item.images }} style={styles.productImage} />
-            <View style={styles.productDetails}>
-              <Text style={styles.productName}>{item.name}</Text>
-              <Text style={styles.productPrice}>{item.price} VND</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        numColumns={2}
-      />
-    </View>
-  );
+      data={filteredProducts}
+      keyExtractor={(item) => `${item._id}_${item.name}`}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={styles.productContainer}
+          onPress={() => navigation.navigate('ProductDetail', { product: item })}
+        >
+          <Image source={{ uri: item.images }} style={styles.productImage} />
+          <View style={styles.productDetails}>
+            <Text style={[styles.productName, styles.centerText]}>{item.name}</Text>
+            <Text style={[styles.productPrice, styles.centerText]}>{item.price} VND</Text>
+            <TouchableOpacity style={styles.addToCartButton} onPress={() => handleAddToCart(item)}>
+              <Text style={styles.addToCartText}>Add To Cart</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      )}
+      numColumns={2}
+    />
+  </View>
+);
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -173,6 +215,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
+    borderRadius: 10, // Thêm thuộc tính này để bo tròn ô sản phẩm
   },
   productImage: {
     width: '100%',
@@ -181,7 +224,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   productDetails: {
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 10,
+    borderRadius: 10,
   },
   productName: {
     fontSize: 16,
@@ -225,5 +271,19 @@ const styles = StyleSheet.create({
   topSellingProductPrice: {
     fontSize: 14,
     color: '#888',
+  },
+
+  addToCartButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  addToCartText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  centerText: {
+    textAlign: 'center',
   },
 });
