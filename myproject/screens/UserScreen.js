@@ -1,6 +1,5 @@
-// UserScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function UserScreen({ navigation }) {
@@ -72,11 +71,49 @@ export default function UserScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Thông tin người dùng</Text>
-      <Text>Email: {userDetails.email}</Text>
-      <Text>Liên hệ: {userDetails.contact}</Text>
-      <Text>Địa chỉ: {userDetails.address}</Text>
-      <Button title="Chỉnh sửa" onPress={() => setIsEditingUser(true)} />
+      <View style={styles.header}>
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatar}></View>
+          <Text style={styles.username}>min261102</Text>
+        </View>
+        <View style={styles.settingsContainer}>
+          <TouchableOpacity style={styles.iconButton}>
+            <Text>⚙️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Text>🛒</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Text>💬</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.userInfo}>
+        <Text>Email: {userDetails.email}</Text>
+        <Text>Liên hệ: {userDetails.contact}</Text>
+        <Text>Địa chỉ: {userDetails.address}</Text>
+        <Button title="Chỉnh sửa" onPress={() => setIsEditingUser(true)} />
+      </View>
+
+      {/* Phần Đơn mua */}
+      <View style={styles.orderSection}>
+        <Text style={styles.orderTitle}>Đơn mua</Text>
+        <View style={styles.orderStatusContainer}>
+          <TouchableOpacity style={styles.orderStatusButton}>
+            <Text>Chờ xác nhận</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.orderStatusButton}>
+            <Text>Chờ lấy hàng</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.orderStatusButton}>
+            <Text>Chờ giao hàng</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.orderStatusButton}>
+            <Text>Đánh giá</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -84,13 +121,57 @@ export default function UserScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 20,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  avatarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#ccc',
+    marginRight: 10,
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  settingsContainer: {
+    flexDirection: 'row',
+  },
+  iconButton: {
+    marginLeft: 10,
+    padding: 5,
+  },
+  userInfo: {
+    marginTop: 20,
+  },
+  orderSection: {
+    marginTop: 30,
+  },
+  orderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  orderStatusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  orderStatusButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',
   },
   input: {
     height: 40,
