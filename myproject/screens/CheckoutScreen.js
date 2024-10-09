@@ -80,13 +80,13 @@ export default function CheckoutScreen({ route }) {
         )}
       />
 
-      {/* Chọn vận chuyển nhanh */}
+      {/* Chọn vận chuyển nhanh
       <View style={styles.shippingOption}>
         <TouchableOpacity onPress={() => setIsExpressShipping(!isExpressShipping)} style={styles.checkbox}>
           {isExpressShipping ? <Text style={styles.checkboxText}>✓</Text> : <Text style={styles.checkboxText}></Text>}
         </TouchableOpacity>
         <Text style={styles.shippingText}>Vận chuyển nhanh (+ 25,000 VND)</Text>
-      </View>
+      </View> */}
 
       {/* Hiển thị phí vận chuyển */}
       {isExpressShipping && (
