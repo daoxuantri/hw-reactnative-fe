@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 export default function HomeScreen({ navigation, route }) {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [topSellingProducts, setTopSellingProducts] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -61,6 +62,27 @@ export default function HomeScreen({ navigation, route }) {
     }
   };
 
+
+  useEffect(() => {
+    fetchTopSellingProducts();
+  }, []);
+  const fetchTopSellingProducts = async () => {
+    try {
+      const response = await fetch('http://192.168.2.183:4000/products/getselling');
+      const responseJson = await response.json();
+      if (responseJson.success) {
+        setTopSellingProducts(responseJson.data);
+      } else {
+        console.log('API returned an error:', responseJson); 
+      }
+    } catch (error) {
+      console.error('Error fetching top selling products:', error); 
+    }
+  };
+  useEffect(() => {
+    fetchProducts();  
+  }, []);
+
   // Xử lý tìm kiếm
   const handleSearch = (text) => {
     setSearchText(text);
@@ -69,17 +91,45 @@ export default function HomeScreen({ navigation, route }) {
     );
     setFilteredProducts(filtered);
   };
-
+ 
   // Xử lý thêm vào giỏ hàng
-  const handleAddToCart = (product) => {
-    // Logic thêm vào giỏ hàng tại đây, ví dụ:
-    // dispatch(addToCart(product));
-    Toast.show({
-      type: 'success',
-      text1: 'Sản phẩm đã được thêm vào giỏ hàng',
-      position: 'bottom',
-    });
+  const handleAddToCart = async (product) => {
+    try {
+      const storedUserData = await AsyncStorage.getItem('userData');
+      const userData = JSON.parse(storedUserData);
+      const userId = userData.id;
+      const response = await fetch('http://192.168.2.183:4000/carts/addproduct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user: userId,
+          _id: product._id,
+          quantity: 1,
+        }),
+      });
+      const responseJson = await response.json();
+      if (responseJson.success) {
+        Toast.show({
+          type: 'success',
+          text1: responseJson.message,
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: responseJson.message,
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+    }
   };
+  
 
   if (loading) {
     return (
@@ -104,6 +154,29 @@ export default function HomeScreen({ navigation, route }) {
         value={searchText}
         onChangeText={handleSearch}
       />
+
+        <View style={styles.topSellingContainer}>
+        <Text style={styles.topSellingTitle}>Top Selling Products</Text>
+        <FlatList
+          data={topSellingProducts}
+          keyExtractor={(item) => `${item._id}_${item.name}`}
+          renderItem={({ item }) => (
+            
+            <TouchableOpacity
+              style={styles.topSellingProductContainer}
+              onPress={() => navigation.navigate('ProductDetail', { product: item })}
+            >
+              <Image source={{ uri: item.images }} style={styles.topSellingProductImage} />
+              <View style={styles.topSellingProductDetails}>
+                <Text style={styles.topSellingProductName}>{item.name}</Text>
+                <Text style={styles.topSellingProductPrice}>{item.price} VND</Text>
+                </View>
+            </TouchableOpacity>
+          )}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+        />
+      </View>
       
       <FlatList
         data={filteredProducts}
@@ -121,7 +194,7 @@ export default function HomeScreen({ navigation, route }) {
                 style={styles.addToCartButton} 
                 onPress={() => handleAddToCart(item)}
               >
-                <Text style={styles.addToCartText}>Thêm vào giỏ hàng</Text>
+                <Text style={styles.addToCartText}>Add to Cart</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -186,6 +259,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
   },
+  topSellingContainer: {
+    padding: 20,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  topSellingTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  topSellingProductContainer: {
+    marginRight: 10,
+    marginBottom: 20,
+  },
+  topSellingProductImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  topSellingProductDetails: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  topSellingProductName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  topSellingProductPrice: {
+    fontSize: 14,
+    color: '#888',
+  },
   addToCartButton: {
     backgroundColor: '#4CAF50',
     padding: 10,
@@ -195,5 +303,9 @@ const styles = StyleSheet.create({
   addToCartText: {
     color: '#fff',
     fontSize: 14,
+  },
+
+  centerText: {
+    textAlign: 'center',
   },
 });
