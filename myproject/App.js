@@ -9,6 +9,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import ProductDetailScreen from './screens/ProductDetailScreen';
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
+import CommentScreen from './screens/CommentScreen';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { View, Text } from 'react-native';
@@ -56,6 +57,7 @@ export default function App() {
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
+          <Stack.Screen name="Comment" component={CommentScreen} />
           <Stack.Screen
             name="HomeTabs"
             component={HomeTabs}
