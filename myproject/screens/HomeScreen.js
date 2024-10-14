@@ -98,14 +98,18 @@ export default function HomeScreen({ navigation, route }) {
       const storedUserData = await AsyncStorage.getItem('userData');
       const userData = JSON.parse(storedUserData);
       const userId = userData.id;
+      console.log('thongtin', userId);
+        console.log('thongtinproduct', product._id);
       const response = await fetch('http://192.168.2.183:4000/carts/addproduct', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        
+
         body: JSON.stringify({
           user: userId,
-          _id: product._id,
+          product: product._id,
           quantity: 1,
         }),
       });

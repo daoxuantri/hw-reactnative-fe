@@ -10,6 +10,7 @@ import ProductDetailScreen from './screens/ProductDetailScreen';
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import CommentScreen from './screens/CommentScreen';
+import PurchaseSummaryScreen from './screens/PurchaseSummaryScreen'; 
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { View, Text } from 'react-native';
@@ -30,6 +31,8 @@ function HomeTabs() {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'CartScreen') {
             iconName = focused ? 'cart' : 'cart-outline';
+          } else if (route.name === 'PurchaseSummary') {
+            iconName = focused ? 'bar-chart' : 'bar-chart-outline';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -44,6 +47,11 @@ function HomeTabs() {
       />
       <Tab.Screen name="Profile" component={UserScreen} />
       <Tab.Screen name="CartScreen" component={CartScreen} />
+      <Tab.Screen
+        name="PurchaseSummary"
+        component={PurchaseSummaryScreen}
+        options={{ headerTitle: 'Purchase Summary' }}
+      />
     </Tab.Navigator>
   );
 }
