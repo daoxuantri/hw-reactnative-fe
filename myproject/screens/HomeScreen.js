@@ -3,6 +3,7 @@ import { View, Text, TextInput, FlatList, Image, StyleSheet, TouchableOpacity, A
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+// import messaging from '@react-native-firebase/messaging';
 
 export default function HomeScreen({ navigation, route }) {
   const [products, setProducts] = useState([]);
@@ -40,6 +41,32 @@ export default function HomeScreen({ navigation, route }) {
     await AsyncStorage.removeItem('userData');
     navigation.replace('Login');
   };
+
+  // const requestUserPermission = async () =>{
+  //   const authStatus = await messaging().requestPermission();
+  //   const enabled =
+  //   authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+  //   authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+  // if (enabled) {
+  //   console.log('Authorization status:', authStatus);
+  //   getFcmToken();
+  // }
+  // };
+
+  // const getFcmToken = async () =>{
+  //   const token = await messaging().getToken();
+  //   console.log('Fcm Token:', token);
+  // }
+  // useEffect(() =>{
+  //   requestUserPermission();
+  //   const unsubscribe = messaging().onMessage(async remoteMessage =>{
+  //     console.log('Notification received in foreground:', remoteMessage);
+  //   });
+
+  //   return unsubscribe;
+  // }, [])
+
 
   useEffect(() => {
     fetchProducts();  
@@ -174,6 +201,7 @@ export default function HomeScreen({ navigation, route }) {
               <View style={styles.topSellingProductDetails}>
                 <Text style={styles.topSellingProductName}>{item.name}</Text>
                 <Text style={styles.topSellingProductPrice}>{item.price} VND</Text>
+                <Text style={styles.topSellingProductSold}>Sold: {item.sold}</Text>
                 </View>
             </TouchableOpacity>
           )}
@@ -194,6 +222,7 @@ export default function HomeScreen({ navigation, route }) {
             <View style={styles.productDetails}>
               <Text style={[styles.productName, styles.centerText]}>{item.name}</Text>
               <Text style={[styles.productPrice, styles.centerText]}>{item.price} VND</Text>
+              <Text style={styles.topSellingProductSold}>Sold: {item.sold}</Text>
               <TouchableOpacity 
                 style={styles.addToCartButton} 
                 onPress={() => handleAddToCart(item)}

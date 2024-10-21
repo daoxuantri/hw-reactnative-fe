@@ -1,62 +1,71 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 export default function CheckoutScreen({ route }) {
-  const { selectedProducts } = route.params; // Nhận sản phẩm đã chọn từ CartScreen
+  const { selectedProducts: initialProducts } = route.params; // Sản phẩm truyền từ CartScreen
+  const [selectedProducts, setSelectedProducts] = useState(initialProducts); // Lưu trữ sản phẩm được chọn
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [isExpressShipping, setIsExpressShipping] = useState(false); // Trạng thái vận chuyển nhanh
-  const shippingFee = isExpressShipping ? 25000 : 0; // Phí vận chuyển nhanh
+  const [isExpressShipping, setIsExpressShipping] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0); // Tổng tiền
   const navigation = useNavigation();
 
-  const totalProductAmount = selectedProducts.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalAmount = totalProductAmount + shippingFee; // Tổng cộng bao gồm phí vận chuyển nếu có
+  // Cập nhật lại tổng tiền khi danh sách sản phẩm hoặc trạng thái vận chuyển nhanh thay đổi
+  useEffect(() => {
+    const totalProductAmount = selectedProducts.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    setTotalAmount(totalProductAmount + (isExpressShipping ? 25000 : 0)); // Thêm phí vận chuyển nếu có
+  }, [selectedProducts, isExpressShipping]);
 
+  // Hàm để bỏ chọn sản phẩm khỏi danh sách sản phẩm đã chọn
+  const handleProductSelection = (product) => {
+    const updatedProducts = selectedProducts.filter(item => item.product !== product.product); // Loại bỏ sản phẩm đã chọn
+    setSelectedProducts(updatedProducts); // Cập nhật lại danh sách sản phẩm
+  };
+
+  // Xử lý đặt hàng
   const handleCheckout = async () => {
     try {
-      const storedUserData = await AsyncStorage.getItem('userData');
+      const storedUserData = await AsyncStorage.getItem('userData'); // Lấy thông tin người dùng từ AsyncStorage
       const userData = JSON.parse(storedUserData);
       const userId = userData.id;
 
       const productItem = selectedProducts.map((item) => ({
-        product: item.product ,
+        product: item.product,
         name: item.name,
         quantity: item.quantity,
         images: item.images,
         price: item.price,
       }));
+
       const response = await fetch('http://192.168.2.183:4000/orders/createorder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify({
-          user: userId, // Gán ID người dùng ở đây
-          productItem: productItem,
-          total: totalAmount, // Tổng số tiền của đơn hàng bao gồm phí vận chuyển
+          user: userId,
+          productItem,
+          total: totalAmount,
           address,
           phone,
-          delivery: isExpressShipping, // Gán thẳng giá trị boolean
+          delivery: isExpressShipping,
         }),
       });
-  
+
       const responseJson = await response.json();
-  
+
       if (responseJson.success) {
         Alert.alert('Đặt hàng thành công!');
-        navigation.navigate('Home'); // Quay lại trang Home
+        navigation.navigate('Home');
       } else {
-        console.log('Lỗi khi đặt hàng:', responseJson); // Ghi log chi tiết
+        console.log('Lỗi khi đặt hàng:', responseJson);
       }
     } catch (error) {
       console.error('Error during checkout:', error);
     }
   };
-  
 
   return (
     <View style={styles.container}>
@@ -68,34 +77,34 @@ export default function CheckoutScreen({ route }) {
         keyExtractor={(item) => item.product}
         renderItem={({ item }) => (
           <View style={styles.productContainer}>
-            {/* Hiển thị hình ảnh sản phẩm */}
             <Image source={{ uri: item.images }} style={styles.productImage} />
-
-            {/* Hiển thị tên và giá sản phẩm */}
             <View style={styles.productDetails}>
               <Text style={styles.productName}>{item.name}</Text>
               <Text style={styles.productPrice}>{item.price} VND x {item.quantity}</Text>
             </View>
+            <TouchableOpacity onPress={() => handleProductSelection(item)}>
+              <Text>Remove</Text>
+            </TouchableOpacity>
           </View>
         )}
       />
 
-      {/* Chọn vận chuyển nhanh
+      {/* Tùy chọn vận chuyển nhanh */}
       <View style={styles.shippingOption}>
         <TouchableOpacity onPress={() => setIsExpressShipping(!isExpressShipping)} style={styles.checkbox}>
           {isExpressShipping ? <Text style={styles.checkboxText}>✓</Text> : <Text style={styles.checkboxText}></Text>}
         </TouchableOpacity>
         <Text style={styles.shippingText}>Vận chuyển nhanh (+ 25,000 VND)</Text>
-      </View> */}
+      </View>
 
-      {/* Hiển thị phí vận chuyển */}
+      {/* Hiển thị phí vận chuyển nếu chọn */}
       {isExpressShipping && (
         <View style={styles.feeContainer}>
           <Text style={styles.feeText}>Phí vận chuyển: 25,000 VND</Text>
         </View>
       )}
 
-      {/* Hiển thị tổng tiền thanh toán */}
+      {/* Hiển thị tổng cộng */}
       <View style={styles.totalContainer}>
         <Text style={styles.totalText}>Tổng cộng: {totalAmount} VND</Text>
       </View>
@@ -110,17 +119,13 @@ export default function CheckoutScreen({ route }) {
       <TextInput
         placeholder="Nhập số điện thoại"
         value={phone}
-        onChangeText={(text) => {
-          // Chỉ cho phép ký tự là số
-          const numericValue = text.replace(/[^0-9]/g, '');
-          setPhone(numericValue);
-        }}
+        onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ''))}
         style={styles.input}
         keyboardType="numeric"
-        maxLength={10} 
+        maxLength={10}
       />
 
-      {/* Nút Đặt Hàng */}
+      {/* Nút đặt hàng */}
       <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
         <Text style={styles.checkoutButtonText}>Đặt hàng</Text>
       </TouchableOpacity>

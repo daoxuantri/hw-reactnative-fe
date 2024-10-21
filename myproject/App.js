@@ -7,6 +7,7 @@ import UserScreen from './screens/UserScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ProductDetailScreen from './screens/ProductDetailScreen';
+import ProductDetailerScreen from './screens/ProductDetailerScreen';
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import CommentScreen from './screens/CommentScreen';
@@ -64,6 +65,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+          <Stack.Screen name="ProductDetailer" component={ProductDetailerScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="Comment" component={CommentScreen} />
           <Stack.Screen

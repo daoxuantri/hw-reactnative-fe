@@ -12,10 +12,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native'; 
 
-export default function ProductDetailScreen({ route }) {
+export default function ProductDetailerScreen({ route }) {
   const { product } = route.params;
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,13 +30,14 @@ export default function ProductDetailScreen({ route }) {
   // Fetch reviews from API
   useEffect(() => {
     const fetchReviews = async () => {
+      console.log('fetchreview',product.product);
       try {
         const response = await fetch('http://192.168.2.183:4000/reviews/getallreview', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ productId: product._id }),
+          body: JSON.stringify({ productId: product.product }),
         });
 
         if (!response.ok) {
@@ -66,7 +66,7 @@ export default function ProductDetailScreen({ route }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productId: product._id }),
+        body: JSON.stringify({ productId: product.product }),
       });
   
       if (!response.ok) {
@@ -97,10 +97,10 @@ export default function ProductDetailScreen({ route }) {
           },
           body: JSON.stringify({
             userId: userId,
-            productId: product._id,
+            productId: product.product,
           }),
         });
-        console.log(product._id);
+        console.log(product.id);
 
         const text = await response.text();
         console.log('Raw response:', text);
@@ -113,7 +113,7 @@ export default function ProductDetailScreen({ route }) {
     };
 
     checkOrderStatus();
-  }, [product._id]);
+  }, [product.id]);
 
   const handleCommentSubmit = async () => {
     if (!comment) {
@@ -138,7 +138,7 @@ export default function ProductDetailScreen({ route }) {
         },
         body: JSON.stringify({
           userId: userData.id,
-          productId: product._id,
+          productId: product.product,
           content: comment,
           rating: rating,
         }),
